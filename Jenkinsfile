@@ -18,14 +18,16 @@ pipeline {
 
     stage('Build, Authenticate & Push Docker Image') {
       steps {
-        withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-          docker.image('google/cloud-sdk:latest').inside('-v /var/run/docker.sock:/var/run/docker.sock -u root') {
-            sh """
-              docker build -t ${IMAGE} .
-              gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-              gcloud auth configure-docker --quiet
-              docker push ${IMAGE}
-            """
+        script {
+          withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            docker.image('google/cloud-sdk:latest').inside(args: '-v /var/run/docker.sock:/var/run/docker.sock -u root') {
+              sh """
+                docker build -t ${IMAGE} .
+                gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                gcloud auth configure-docker --quiet
+                docker push ${IMAGE}
+              """
+            }
           }
         }
       }
@@ -33,13 +35,15 @@ pipeline {
 
     stage('Deploy to GKE') {
       steps {
-        withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-          docker.image('google/cloud-sdk:latest').inside('-u root') {
-            sh """
-              gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-              gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
-              kubectl apply -f deployment.yaml
-            """
+        script {
+          withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            docker.image('google/cloud-sdk:latest').inside(args: '-u root') {
+              sh """
+                gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
+                kubectl apply -f deployment.yaml
+              """
+            }
           }
         }
       }
