@@ -1,8 +1,8 @@
 pipeline {
   agent {
     docker {
-      image 'docker:24.0.5'  // or latest stable docker image with CLI
-      args '-v /var/run/docker.sock:/var/run/docker.sock'
+      image 'docker:24.0.5'
+      args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
     }
   }
 
@@ -24,7 +24,9 @@ pipeline {
     stage('Build Image') {
       steps {
         script {
-          docker.build("${IMAGE}")
+          withEnv(["HOME=${env.WORKSPACE}"]) {
+            docker.build("${IMAGE}")
+          }
         }
       }
     }
