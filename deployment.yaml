@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: demo-app
-        image: gcr.io/[PROJECT_ID]/demo-app:latest
+        image: gcr.io/omega-byte-460612-p8/demo-app:latest
         ports:
         - containerPort: 5000
 ---
