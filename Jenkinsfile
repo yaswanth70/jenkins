@@ -16,10 +16,10 @@ pipeline {
       }
     }
 
-    stage('Build and Push Docker Image') {
+    stage('Build, Authenticate & Push Docker Image') {
       agent {
         docker {
-          image 'docker:24.0.5'
+          image 'google/cloud-sdk:latest'
           args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
         }
       }
@@ -40,7 +40,7 @@ pipeline {
     stage('Deploy to GKE') {
       agent {
         docker {
-          image 'google/cloud-sdk:latest' // has gcloud and kubectl preinstalled
+          image 'google/cloud-sdk:latest'
           args '-u root'
         }
       }
