@@ -1,10 +1,5 @@
 pipeline {
-  agent {
-    docker {
-      image 'docker:24.0.5'
-      args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
-    }
-  }
+  agent any
 
   environment {
     PROJECT_ID = 'omega-byte-460612-p8'
@@ -21,34 +16,39 @@ pipeline {
       }
     }
 
-    stage('Build Image') {
+    stage('Build and Push Docker Image') {
+      agent {
+        docker {
+          image 'docker:24.0.5'
+          args '-v /var/run/docker.sock:/var/run/docker.sock -u root'
+        }
+      }
       steps {
         script {
-          withEnv(["HOME=${env.WORKSPACE}"]) {
-            docker.build("${IMAGE}")
+          docker.build("${IMAGE}")
+          withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+            sh '''
+              gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+              gcloud auth configure-docker
+              docker push ${IMAGE}
+            '''
           }
         }
       }
     }
 
-    stage('Push Image to GCR') {
-      steps {
-        withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-          sh '''
-            gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-            gcloud auth configure-docker
-            docker push ${IMAGE}
-          '''
+    stage('Deploy to GKE') {
+      agent {
+        docker {
+          image 'google/cloud-sdk:latest' // has gcloud and kubectl preinstalled
+          args '-u root'
         }
       }
-    }
-
-    stage('Deploy to GKE') {
       steps {
         withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
           sh '''
             gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-            gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
+            gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE --project $PROJECT_ID
             kubectl apply -f deployment.yaml
           '''
         }
