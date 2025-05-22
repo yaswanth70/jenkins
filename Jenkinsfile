@@ -5,12 +5,14 @@ pipeline {
     PROJECT_ID = 'omega-byte-460612-p8'
     IMAGE = "gcr.io/${PROJECT_ID}/demo-app"
     CREDENTIALS_ID = 'jenkins-gcp-sa-key'
+    GKE_CLUSTER = 'jenkins-demo-cluster'
+    GKE_ZONE = 'us-central1-a'
   }
 
   stages {
     stage('Clone Code') {
       steps {
-        git 'https://github.com/yaswanth70/jenkins.git'
+        git branch: 'main', url: 'https://github.com/yaswanth70/jenkins.git'
       }
     }
 
@@ -39,7 +41,7 @@ pipeline {
         withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
           sh '''
             gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-            gcloud container clusters get-credentials jenkins-demo-cluster --zone us-central1-a
+            gcloud container clusters get-credentials $GKE_CLUSTER --zone $GKE_ZONE
             kubectl apply -f deployment.yaml
           '''
         }
@@ -47,4 +49,3 @@ pipeline {
     }
   }
 }
-
