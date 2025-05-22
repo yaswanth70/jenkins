@@ -45,5 +45,18 @@ pipeline {
         }
       }
     }
+
+    stage('Cleanup (Optional)') {
+      steps {
+        sh "docker rmi ${IMAGE} || true"
+      }
+    }
+  }
+
+  post {
+    failure {
+      echo 'Pipeline failed!'
+      // You can also send Slack/email notifications here
+    }
   }
 }
