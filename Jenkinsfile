@@ -1,5 +1,10 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'docker:24.0.5'  // or latest stable docker image with CLI
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+    }
+  }
 
   environment {
     PROJECT_ID = 'omega-byte-460612-p8'
