@@ -3,7 +3,7 @@ pipeline {
 
   environment {
     PROJECT_ID = 'omega-byte-460612-p8'
-    IMAGE = "gcr.io/${PROJECT_ID}/demo-app"
+    IMAGE = "us-central1-docker.pkg.dev/${PROJECT_ID}/my-repo/demo-app"
     CREDENTIALS_ID = 'jenkins-gcp-sa-key'
   }
 
@@ -22,12 +22,12 @@ pipeline {
       }
     }
 
-    stage('Push Image to GCR') {
+    stage('Push Image to Artifact Registry') {
       steps {
         withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
           sh '''
             gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-            gcloud auth configure-docker
+            gcloud auth configure-docker us-central1-docker.pkg.dev
             docker push ${IMAGE}
           '''
         }
@@ -47,4 +47,3 @@ pipeline {
     }
   }
 }
-
