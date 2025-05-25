@@ -28,10 +28,7 @@ pipeline {
           sh '''
             gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
             gcloud auth configure-docker us-central1-docker.pkg.dev
-
-            # Docker login using access token for Artifact Registry
             gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin https://us-central1-docker.pkg.dev
-
             docker push ${IMAGE}
           '''
         }
@@ -39,6 +36,12 @@ pipeline {
     }
 
     stage('Deploy to GKE') {
+      agent {
+        docker {
+          image 'gcr.io/google.com/cloudsdktool/cloud-sdk:latest'
+          args '-u root:root'
+        }
+      }
       steps {
         withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
           sh '''
