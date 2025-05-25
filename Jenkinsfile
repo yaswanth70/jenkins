@@ -22,12 +22,12 @@ pipeline {
       }
     }
 
-    stage('Push Image to Artifact Registry') {
+    stage('Push Image to GCR') {
       steps {
         withCredentials([file(credentialsId: "${CREDENTIALS_ID}", variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
           sh '''
             gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-            gcloud auth configure-docker us-central1-docker.pkg.dev
+            gcloud auth configure-docker
             docker push ${IMAGE}
           '''
         }
