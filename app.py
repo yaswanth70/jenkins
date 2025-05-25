@@ -3,4 +3,4 @@ app = Flask(__name__)
 
 @app.route("/")
 def hello():
-    return "Hello from GCP CI/CD demo!
+    return "Hello from GCP CI/CD demo!"
